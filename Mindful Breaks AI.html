@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)http://127.0.0.1:5500/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindful Breaks AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #07111f, #102a43);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 25px;
+      padding: 35px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 34px;
+    }
+
+    .subtitle {
+      color: #b9c8d8;
+      margin-top: 8px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.08);
+      padding: 20px;
+      border-radius: 18px;
+      text-align: center;
+    }
+
+    .number {
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .main {
+      background: rgba(0,0,0,0.18);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .question {
+      font-size: 21px;
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #ffffff;
+      color: #102a43;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .result {
+      margin-top: 25px;
+      padding: 22px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      display: none;
+    }
+
+    .result h2 {
+      margin-bottom: 10px;
+    }
+
+    .timer {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .progress {
+      height: 8px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: white;
+      transition: width 1s linear;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      color: #8fa5ba;
+      font-size: 13px;
+    }
+
+    @media (max-width: 650px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <div class="header">
+      <div class="logo">🧠</div>
+      <h1>Mindful Breaks AI</h1>
+      <p class="subtitle">
+        Smart breaks for a healthier, calmer and more focused mind.
+      </p>
+    </div>
+
+    <div class="dashboard">
+
+      <div class="card">
+        <p>Focus Score</p>
+        <div class="number">87%</div>
+      </div>
+
+      <div class="card">
+        <p>Breaks Today</p>
+        <div class="number" id="breakCount">0</div>
+      </div>
+
+      <div class="card">
+        <p>Mind Status</p>
+        <div class="number">😊</div>
+      </div>
+
+    </div>
+
+    <div class="main">
+
+      <p class="question">
+        How are you feeling right now?
+      </p>
+
+      <div class="buttons">
+        <button onclick="startBreak(&#39;stressed&#39;)">
+          😣 Stressed
+        </button>
+
+        <button onclick="startBreak(&#39;tired&#39;)">
+          😴 Tired
+        </button>
+
+        <button onclick="startBreak(&#39;distracted&#39;)">
+          📱 Distracted
+        </button>
+
+        <button onclick="startBreak(&#39;okay&#39;)">
+          😊 I'm Okay
+        </button>
+      </div>
+
+      <div class="result" id="result">
+
+        <h2 id="recommendation"></h2>
+
+        <p id="description"></p>
+
+        <div class="timer" id="timer">01:00</div>
+
+        <div class="progress">
+          <div class="bar" id="bar"></div>
+        </div>
+
+        <br>
+
+        <button onclick="startTimer()">
+          ▶ Start Break
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="footer">
+      Mindful Breaks AI • Your mind deserves a pause.
+    </div>
+
+  </div>
+
+  <script>
+
+    let selectedBreak = "";
+    let seconds = 60;
+    let timerRunning = false;
+    let breakCount = 0;
+
+    const recommendations = {
+
+      stressed: {
+        title: "🌿 Try a breathing break",
+        description:
+          "Slow your breathing and relax your shoulders. Give your mind one quiet minute."
+      },
+
+      tired: {
+        title: "💧 Try a refresh break",
+        description:
+          "Stand up, stretch your body and take a few slow breaths before returning to work."
+      },
+
+      distracted: {
+        title: "🎯 Try a focus reset",
+        description:
+          "Look away from your screen and focus on one object for a few seconds."
+      },
+
+      okay: {
+        title: "☀️ Try a gratitude break",
+        description:
+          "Think of one good thing that happened today. Let your mind reset before continuing."
+      }
+
+    };
+
+    function startBreak(type) {
+
+      selectedBreak = type;
+
+      document.getElementById("recommendation").innerText =
+        recommendations[type].title;
+
+      document.getElementById("description").innerText =
+        recommendations[type].description;
+
+      document.getElementById("result").style.display = "block";
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+      });
+
+    }
+
+    function startTimer() {
+
+      if (timerRunning) return;
+
+      timerRunning = true;
+      seconds = 60;
+
+      const timer = document.getElementById("timer");
+      const bar = document.getElementById("bar");
+
+      const interval = setInterval(() => {
+
+        seconds--;
+
+        let min = Math.floor(seconds / 60);
+        let sec = seconds % 60;
+
+        timer.innerText =
+          String(min).padStart(2, "0") +
+          ":" +
+          String(sec).padStart(2, "0");
+
+        bar.style.width = ((60 - seconds) / 60 * 100) + "%";
+
+        if (seconds <= 0) {
+
+          clearInterval(interval);
+
+          timer.innerText = "Done! 🎉";
+
+          breakCount++;
+
+          document.getElementById("breakCount").innerText =
+            breakCount;
+
+          timerRunning = false;
+
+          alert("Great job! Your mindful break is complete. 🧠✨");
+
+        }
+
+      }, 1000);
+
+    }
+
+  </script>
+
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+<span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>
